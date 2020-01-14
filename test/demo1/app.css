@@ -1,0 +1,41 @@
+html, body{
+    margin: 0px;
+    padding: 0px;
+}
+
+.app{
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: space-between;
+}
+
+.left{
+    width: 15%;
+    height: 100%;
+    background-color: aquamarine;
+}
+
+.right{
+    width: 15%;
+    height: 100%;
+    background-color: aquamarine;
+}
+
+.video-wrapper{
+    position: relative;
+    width: 100%;
+}
+
+.video-wrapper > .video{
+    width: 100%;
+}
+
+.video-wrapper > .username{
+    position: absolute;
+    color: #fff;
+    z-index: 1;
+    right: 0;
+    bottom: 0;
+}

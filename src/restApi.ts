@@ -36,6 +36,37 @@ export interface GetSessionTokenResponseData {
 	kurentoOptions: string;    // same as in the body request
 }
 
+export interface RoomInfo {
+	sessionId: string;
+	createdAt: string;
+	mediaMode: string;
+	recording: string;
+	recordingMode: string;
+	defaultOutputMode: string;
+	defaultRecordingLayout: string;
+	defaultCustomLayout: string;
+	customSessionId: string;
+	connections: {
+		connectionId: string;
+		createdAt: string;
+		location: string;
+		platform: string;
+		role: string;
+		clientData: string;
+		serverData: string;
+		token: string;
+		publishers: {
+			streamId: string;
+			createdAt: number;
+			mediaOptions: object;
+		}[];
+		subscribers: {
+			streamId: string;
+			publisher: object;
+		}[];
+	};
+}
+
 class RestApi {
 	private config = {
 		serverUrl: "",
@@ -48,10 +79,10 @@ class RestApi {
 
 	private formatUrl = (url: string) => `${this.config.serverUrl}/${url.replace(/^\//, "")}`
 
-	private getCommonRequestConfig = () => ({
+	private getCommonRequestConfig = (contentType = "application/json") => ({
 		headers: {
 			Authorization: 'Basic ' + btoa('OPENVIDUAPP:' + this.config.serverSecret),
-			'Content-Type': 'application/json',
+			'Content-Type': contentType,
 		}
 	});
 
@@ -75,7 +106,7 @@ class RestApi {
 	 * 获取会话房间token
 	 * @param params
 	 */
-	getSessionToken = (params: GetSessionTokenRequestData) => new Promise<GetSessionTokenResponseData>((resolve, reject) => {
+	getRoomToken = (params: GetSessionTokenRequestData) => new Promise<GetSessionTokenResponseData>((resolve, reject) => {
 		const data = JSON.stringify(params);
 		axios.post<GetSessionTokenResponseData>(this.formatUrl("api/tokens"), data, this.getCommonRequestConfig()).then((resp) => {
 			resolve(resp.data);
@@ -83,6 +114,69 @@ class RestApi {
 			reject(error);
 		});
 	});
+
+	/**
+	 * 获取房间信息
+	 * @param roomId
+	 */
+	getRoomInfo = (roomId: string) => new Promise<RoomInfo>((resolve, reject) => {
+		axios.get<RoomInfo>(this.formatUrl(`api/sessions/${roomId}`), this.getCommonRequestConfig()).then((resp) => {
+			const {status, data} = resp;
+			if(status === 200){
+				resolve(resp.data);
+				return;
+			}
+			resolve(null);
+		}).catch((e) => reject(e))
+	});
+
+	/**
+	 * 获取所有房间信息
+	 */
+	getAllRoomInfo = () => new Promise<RoomInfo[]>((resolve, reject) => {
+		axios.get<RoomInfo[]>(this.formatUrl(`api/sessions`), this.getCommonRequestConfig()).then((resp) => {
+			resolve(resp.data);
+		}).catch((e) => reject(e))
+	});
+
+	/**
+	 * 销毁会话房间
+	 * @param roomId
+	 */
+	destroyRoom = (roomId: string) => new Promise<boolean>((resolve, reject) => {
+		axios.delete(this.formatUrl(`/api/sessions/${roomId}`), this.getCommonRequestConfig( "application/x-www-form-urlencoded")).then((resp) =>{
+			const { status } = resp;
+			if(status === 204) {
+				resolve(true)
+			}else {
+				resolve(false)
+			}
+		}).catch((e) => reject(e))
+	});
+
+
+	disconnectionUser = (roomId: string, connectionId: string) =>  new Promise<boolean>((resolve, reject) => {
+		axios.delete(this.formatUrl(`/api/sessions/${roomId}/connection/${connectionId}`), this.getCommonRequestConfig( "application/x-www-form-urlencoded")).then((resp) =>{
+			const { status } = resp;
+			if(status === 204) {
+				resolve(true)
+			}else {
+				resolve(false)
+			}
+		}).catch((e) => reject(e))
+	});
+
+	unPublishUser = (roomId: string, streamId: string) =>  new Promise<boolean>((resolve, reject) => {
+		axios.delete(this.formatUrl(`/api/sessions/${roomId}/stream/${streamId}`), this.getCommonRequestConfig( "application/x-www-form-urlencoded")).then((resp) =>{
+			const { status } = resp;
+			if(status === 204) {
+				resolve(true)
+			}else {
+				resolve(false)
+			}
+		}).catch((e) => reject(e))
+	})
+
 }
 
 export const restApi = new RestApi();
