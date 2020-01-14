@@ -10,6 +10,7 @@ import {
 	PublisherProperties
 } from 'openvidu-browser';
 
+import Layout from './Layout';
 import { restApi } from './restApi';
 import { defaultVideoConferenceOptions, defaultPublisherOptions } from './constants';
 
@@ -130,4 +131,33 @@ const createVideo = (): HTMLVideoElement => {
 	video.style.backgroundColor = "#000";
 
 	return video;
-}
+};
+
+
+// class LayoutManager {
+// 	private layouts: Layout[] = [];
+//
+// 	addLayout = (elem: HTMLDivElement) => {
+// 		const layoutOptions = {
+// 			maxRatio: 3 / 2,    // The narrowest ratio that will be used (default 2x3)
+// 			minRatio: 9 / 16,   // The widest ratio that will be used (default 16x9)
+// 			fixedRatio: false,  // If this is true then the aspect ratio of the video is maintained and minRatio and maxRatio are ignored (default false)
+// 			bigClass: 'OV_big', // The class to add to elements that should be sized bigger
+// 			bigPercentage: 0.8, // The maximum percentage of space the big ones should take up
+// 			bigFixedRatio: false, // fixedRatio for the big ones
+// 			bigMaxRatio: 3 / 2, // The narrowest ratio to use for the big elements (default 2x3)
+// 			bigMinRatio: 9 / 16, // The widest ratio to use for the big elements (default 16x9)
+// 			bigFirst: true, // Whether to place the big one in the top left (true) or bottom right
+// 			animate: true, // Whether you want to animate the transitions
+// 		};
+//
+// 		const layout = new Layout();
+// 		layout.initLayoutContainer(elem, layoutOptions);
+// 	}
+//
+// 	updateLayout = () => {
+// 		setTimeout(() => {
+// 			this.layouts.forEach((layout) => layout.updateLayout());
+// 		}, 100);
+// 	}
+// }

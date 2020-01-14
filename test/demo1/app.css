@@ -26,10 +26,12 @@ html, body{
 .video-wrapper{
     position: relative;
     width: 100%;
+    height: 25%;
 }
 
 .video-wrapper > .video{
     width: 100%;
+    height: 100%;
 }
 
 .video-wrapper > .username{
