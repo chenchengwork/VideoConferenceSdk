@@ -15,7 +15,8 @@ export const defaultPublisherOptions = {
 	// @ts-ignore
 	audioSource: undefined,
 	// @ts-ignore
-	videoSource: undefined,
+	videoSource: undefined,  // 当设置为"screen"时,表示为共享屏幕
+	// videoSource: "screen",
 	publishAudio: true,
 	publishVideo: true,
 	resolution: '640x480',

@@ -16,6 +16,8 @@ function createVideoWrapper(video, username){
 
 function createOperator(videoConference, roomId){
     var recordingManager = videoConference.recordingManager;
+    var roomManager = videoConference.roomManager;
+
     var contentDom = document.querySelector(".content");
     var serverConfigBtn = document.createElement("button");
     var recordingBtn = document.createElement("button");
@@ -23,6 +25,7 @@ function createOperator(videoConference, roomId){
     var deleteRecordingBtn = document.createElement("button");
     var getRecordingBtn = document.createElement("button");
     var getAllRecordingBtn = document.createElement("button");
+    var screenShareBtn = document.createElement("button");
 
     serverConfigBtn.textContent = "获取服务配置";
     recordingBtn.textContent = "开始录制";
@@ -30,6 +33,7 @@ function createOperator(videoConference, roomId){
     getRecordingBtn.textContent = "获取录制信息";
     deleteRecordingBtn.textContent = "删除录制";
     getAllRecordingBtn.textContent = "获取所有录制信息";
+    screenShareBtn.textContent = "分享屏幕";
 
     // 获取服务配置事件
     serverConfigBtn.onclick = function () {
@@ -87,12 +91,32 @@ function createOperator(videoConference, roomId){
         })
     };
 
+    // 分享屏幕事件
+    screenShareBtn.onclick = function(){
+        var leftDom = document.querySelector(".left");
+        var screenShareName = "我的分享屏幕"+ Math.floor(Math.random() * 100);
+        roomManager.joinRoom({
+            roomId: roomId,
+            username: screenShareName,
+            publisherOptions: {
+                videoSource: "screen",  // 设置为屏幕分享
+            },
+            initPublisherFinished: function(publisher, video){
+                var localVideoWrapper = createVideoWrapper(video, screenShareName);
+                leftDom.appendChild(localVideoWrapper);
+
+                createOperator(videoConference, roomId);
+            },
+        })
+    }
+
     contentDom.appendChild(serverConfigBtn);
     contentDom.appendChild(recordingBtn);
     contentDom.appendChild(stopRecordingBtn);
     contentDom.appendChild(getRecordingBtn);
     contentDom.appendChild(deleteRecordingBtn);
     contentDom.appendChild(getAllRecordingBtn);
+    contentDom.appendChild(screenShareBtn);
 }
 
 
