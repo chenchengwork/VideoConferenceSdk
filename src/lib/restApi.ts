@@ -67,6 +67,59 @@ export interface RoomInfo {
 	};
 }
 
+export interface StartRecordingRequestData {
+	// session: string;
+	name?: string;
+	outputMode?: "COMPOSED" | "INDIVIDUAL";     // default "COMPOSED"
+	hasAudio?: boolean;     // default true
+	hasVideo?: boolean;     // default true
+	recordingLayout?: "BEST_FIT" | "CUSTOM" | "PICTURE_IN_PICTURE" | "VERTICAL_PRESENTATION" | "HORIZONTAL_PRESENTATION";   // default "BEST_FIT"
+	customLayout?: string;
+	resolution?: string;
+}
+
+export interface RecordingResponseData {
+	id: string;
+	sessionId: string;
+	name: string;
+	outputMode: string;
+	hasAudio: boolean;
+	hasVideo: boolean;
+	recordingLayout: string;
+	customLayout: string;
+	resolution: string;
+	createdAt: number;
+	size: number;
+	duration: number;
+	url: string;
+	status: string;
+}
+
+
+export interface RecordingAllResponseData {
+	count: number;
+	items: RecordingResponseData[];
+}
+
+export interface ServerConfigResponseData {
+	version: string;
+	maxRecvBandwidth: number;
+	maxSendBandwidth: number;
+	minRecvBandwidth: number;
+	minSendBandwidth: number;
+	openviduCdr: boolean;
+	openviduPublicurl: string;
+	openviduRecording: boolean;
+	openviduRecordingAutostopTimeout: number;
+	openviduRecordingCustomLayout: string;
+	openviduRecordingNotification: string;
+	openviduRecordingPath: string;
+	openviduRecordingPublicAccess: boolean;
+	openviduRecordingVersion: string;
+	openviduWebhook: boolean;
+}
+
+
 class RestApi {
 	private config = {
 		serverUrl: "",
@@ -175,7 +228,106 @@ class RestApi {
 				resolve(false)
 			}
 		}).catch((e) => reject(e))
-	})
+	});
+
+	/**
+	 * 开启录制
+	 */
+	startRecording = (roomId: string, params?: StartRecordingRequestData) => new Promise<RecordingResponseData>((resolve, reject) => {
+		const data = JSON.stringify(Object.assign(params || {}, {session: roomId}));
+		axios.post<RecordingResponseData>(this.formatUrl(`/api/recordings/start`), data, this.getCommonRequestConfig()).then((resp) =>{
+			const { status, data, statusText } = resp;
+			if(status === 200) {
+				resolve(data)
+			}else {
+				reject(statusText)
+			}
+		}).catch((e) => reject(e))
+	});
+
+	/**
+	 * 停止录制
+	 * @param recordingId
+	 */
+	stopRecording = (recordingId: string) => new Promise<RecordingResponseData>((resolve, reject) => {
+		axios.post<RecordingResponseData>(
+			this.formatUrl(`/api/recordings/stop/${recordingId}`),
+			this.getCommonRequestConfig("application/x-www-form-urlencoded")
+		).then((resp) =>{
+			const { status, data, statusText } = resp;
+			if(status === 200) {
+				resolve(data)
+			}else {
+				reject(statusText)
+			}
+		}).catch((e) => reject(e))
+	});
+
+	/**
+	 * 获取录制信息
+	 * @param recordingId
+	 */
+	getRecordingInfo = (recordingId: string) => new Promise<RecordingResponseData>((resolve, reject) => {
+		axios.get<RecordingResponseData>(
+			this.formatUrl(`/api/recordings/${recordingId}`),
+			this.getCommonRequestConfig("application/x-www-form-urlencoded")
+		).then((resp) =>{
+			const { status, data, statusText } = resp;
+			if(status === 200) {
+				resolve(data)
+			}else {
+				reject(statusText)
+			}
+		}).catch((e) => reject(e))
+	});
+
+	/**
+	 * 获取所有录制信息
+	 */
+	getAllRecordingInfo = () => new Promise<RecordingAllResponseData>((resolve, reject) => {
+		axios.get<RecordingAllResponseData>(
+			this.formatUrl(`/api/recordings`),
+			this.getCommonRequestConfig("application/x-www-form-urlencoded")
+		).then((resp) =>{
+			const { status, data, statusText } = resp;
+			if(status === 200) {
+				resolve(data)
+			}else {
+				reject(statusText)
+			}
+		}).catch((e) => reject(e))
+	});
+
+	/**
+	 * 删除录制
+	 * @param recordingId
+	 */
+	deleteRecording = (recordingId: string) =>  new Promise<boolean>((resolve, reject) => {
+		axios.delete(
+			this.formatUrl(`/api/recordings/${recordingId}`),
+			this.getCommonRequestConfig( "application/x-www-form-urlencoded")
+		).then((resp) =>{
+			const { status } = resp;
+			if(status === 204) {
+				resolve(true)
+			}else {
+				resolve(false)
+			}
+		}).catch((e) => reject(e))
+	});
+
+	/**
+	 * 获取server配置信息
+	 */
+	getServerConfig = () =>  new Promise<ServerConfigResponseData>((resolve, reject) => {
+		axios.get<ServerConfigResponseData>(
+			this.formatUrl(`/config`),
+			this.getCommonRequestConfig( "application/x-www-form-urlencoded")
+		).then((resp) =>{
+			const { data } = resp;
+			resolve(data);
+		}).catch((e) => reject(e))
+	});
 
 }
 
