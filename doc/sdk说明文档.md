@@ -37,9 +37,9 @@ VideoConferenceSDK （下文简称为 JS-SDK）适用于 ：Chrome、Firefox、S
 <a id="apiReference"></a>  
 ## API Reference Interface
 
-### 房间管理 SK_VideoConference.RoomManager
+### 一、房间管理 SK_VideoConference.RoomManager
 
-#### 加入房间 RoomManager.joinRoom(params: CreateRoomOptions): Promise<{session: Session, publisher: Publisher}>
+#### 1.加入房间 RoomManager.joinRoom(params: CreateRoomOptions): Promise<{session: Session, publisher: Publisher}>
 
   * **params**: 加入会议的参数
 
@@ -56,11 +56,11 @@ VideoConferenceSDK （下文简称为 JS-SDK）适用于 ：Chrome、Firefox、S
     * params.subscriberJoinListener `function` 他人加入会议后回调 (event: StreamEvent, video: HTMLVideoElement, metaData: object) => void
     * params.subscriberLeaveListener `function` 他人离开会议后回调 (event: StreamEvent) => void
 
-#### 离开房间 RoomManager.leaveRoom(): void
+#### 2.离开房间 RoomManager.leaveRoom(): void
 
-#### 销毁房间 RoomManager.destroyRoom(): Promise<boolean>
+#### 3.销毁房间 RoomManager.destroyRoom(): Promise<boolean>
 
-#### 获取房间信息 RoomManager.getRoomInfo(roomId: string): Promise<RoomInfo>
+#### 4.获取房间信息 RoomManager.getRoomInfo(roomId: string): Promise<RoomInfo>
   * **请求参数**:
     * roomId: `string` 房间ID(必填)
     
@@ -98,11 +98,11 @@ VideoConferenceSDK （下文简称为 JS-SDK）适用于 ：Chrome、Firefox、S
     }
     ```
   
-#### 获取所有房间信息 RoomManager.getRoomInfo(): Promise<RoomInfo[]>
+#### 5.获取所有房间信息 RoomManager.getRoomInfo(): Promise<RoomInfo[]>
 
-### 录制管理 SK_VideoConference.RecordingManager
+### 二、录制管理 SK_VideoConference.RecordingManager
 
-#### 开启录制 RecordingManager.startRecording(roomId: string, params?: StartRecordingRequestData):Promise<RecordingResponseData>
+#### 1.开启录制 RecordingManager.startRecording(roomId: string, params?: StartRecordingRequestData):Promise<RecordingResponseData>
   * **请求参数**:
     * roomId: `string` 房间ID(必填)
     * params: `object` (选填)
@@ -133,14 +133,14 @@ VideoConferenceSDK （下文简称为 JS-SDK）适用于 ：Chrome、Firefox、S
     	status: string;
     }
     ```  
-    
-#### 停止录制 RecordingManager.stopRecording(recordingId: string): Promise<RecordingResponseData>
 
-#### 获取录制信息 RecordingManager.getRecordingInfo(recordingId: string): Promise<RecordingResponseData>
+#### 2.停止录制 RecordingManager.stopRecording(recordingId: string): Promise<RecordingResponseData>
 
-#### 删除录制文件 RecordingManager.deleteRecording(recordingId: string): Promise<boolean>
+#### 3.获取录制信息 RecordingManager.getRecordingInfo(recordingId: string): Promise<RecordingResponseData>
 
-#### 获取所有的录制信息 RecordingManager.getAllRecordingInfo(): Promise<RecordingAllResponseData>
+#### 4.删除录制文件 RecordingManager.deleteRecording(recordingId: string): Promise<boolean>
+
+#### 5.获取所有的录制信息 RecordingManager.getAllRecordingInfo(): Promise<RecordingAllResponseData>
   * **响应信息**:
     ```javascript
     interface RecordingAllResponseData {
@@ -148,8 +148,8 @@ VideoConferenceSDK （下文简称为 JS-SDK）适用于 ：Chrome、Firefox、S
     	items: RecordingResponseData[];
     }
     ```
-    
+
 ### 许可证
 
-> Copyright (c) 2019 shikongshuzhi.com
+> Copyright (c) 2019 chencheng.com
 
