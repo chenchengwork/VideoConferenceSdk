@@ -20,21 +20,21 @@ const defaultVideoConferenceOptions = {
 	// serverUrl: "https://42.159.87.75:4443",
 	serverUrl: "https://10.0.5.172:4443",
 	serverSecret: "MY_SECRET",
-	// advancedConfig: {
-	// 	iceServers:[
-	// 		{
-	// 			urls:['stun:42.159.87.75:3478']
-	// 		},
-	// 		{
-	// 			urls:[
-	// 				"turn:42.159.87.75:3478",
-	// 				"turn:42.159.87.75:3478?transport=tcp"
-	// 			],
-	// 			username: 'denny',
-	// 			credential: '123456'
-	// 		}
-	// 	]
-	// },
+	advancedConfig: {
+		iceServers:[
+			{
+				urls:['stun:42.159.87.75:3478']
+			},
+			{
+				urls:[
+					"turn:42.159.87.75:3478",
+					"turn:42.159.87.75:3478?transport=tcp"
+				],
+				username: 'denny',
+				credential: '123456'
+			}
+		]
+	},
 	publisherSpeakingEventsOptions: {
 		interval: 50,   // 检查是否正在说话的频率, 默认每50ms检查一次, 单位是ms
 		threshold: -50  // 音量大小为多少时触发,默认为-50dB

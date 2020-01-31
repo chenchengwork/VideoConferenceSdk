@@ -7,11 +7,6 @@
 
 import SK_VideoConference from './SK_VideoConference';
 
-// console.log(SK_VideoConference)
-const echoStr: string = "hello world!!!s";
-// console.log(echoStr);
-// console.log(new SK_VideoConference());
-
 export { SK_VideoConference }
 
 // @ts-ignore

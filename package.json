@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "build": "webpack --optimize-minimize --config webpack.prod.js",
-    "dev": "webpack-dev-server --open --config webpack.dev.js"
+    "dev": "webpack-dev-server --open --config webpack.dev.js",
+    "docs": "typedoc --options ./config/typedoc.js --out ./docs ./src"
   },
   "dependencies": {
     "axios": "^0.19.1",
@@ -27,6 +28,7 @@
     "@babel/runtime": "^7.8.3",
     "babel-loader": "^8.0.6",
     "open-browser-webpack-plugin": "0.0.5",
+    "typedoc": "^0.16.6",
     "typescript": "^3.7.4",
     "uglifyjs-webpack-plugin": "^2.2.0",
     "webpack": "^4.41.5",
