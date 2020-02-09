@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "outDir": "./public/",
+    "outDir": "./public/",      // 编译后生成的文件目录
+    "declaration": true,          // 生成 `.d.ts` 文件
     "sourceMap": true,
     "noImplicitAny": true,
     "experimentalDecorators": true,

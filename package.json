@@ -1,9 +1,10 @@
 {
-  "name": "VideoConferenceSdk",
+  "name": "videoconferencesdk",
   "version": "1.0.0",
   "scripts": {
     "build": "webpack --optimize-minimize --config webpack.prod.js",
     "dev": "webpack-dev-server --open --config webpack.dev.js",
+    "output:js": "tsc --sourceMap false",
     "docs": "typedoc --options ./config/typedoc.js --out ./docs ./src"
   },
   "dependencies": {
