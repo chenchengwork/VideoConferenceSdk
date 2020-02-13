@@ -17,8 +17,9 @@ interface VideoConferenceOptions {
 }
 
 const defaultVideoConferenceOptions = {
-	// serverUrl: "https://42.159.87.75:4443",
-	serverUrl: "https://10.0.5.172:4443",
+	serverUrl: "https://42.159.87.75:4443",
+	// serverUrl: "https://10.0.5.172:4443",
+	// serverUrl: "https://192.168.1.104:4443",
 	serverSecret: "MY_SECRET",
 	advancedConfig: {
 		iceServers:[

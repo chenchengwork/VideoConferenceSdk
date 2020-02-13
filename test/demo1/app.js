@@ -26,7 +26,9 @@ function createOperator(videoConference, roomId){
     var getRecordingBtn = document.createElement("button");
     var getAllRecordingBtn = document.createElement("button");
     var screenShareBtn = document.createElement("button");
+    var leaveRoomBtn = document.createElement("button");
 
+    leaveRoomBtn.textContent = "离开房间";
     serverConfigBtn.textContent = "获取服务配置";
     recordingBtn.textContent = "开始录制";
     stopRecordingBtn.textContent = "停止录制";
@@ -34,6 +36,11 @@ function createOperator(videoConference, roomId){
     deleteRecordingBtn.textContent = "删除录制";
     getAllRecordingBtn.textContent = "获取所有录制信息";
     screenShareBtn.textContent = "分享屏幕";
+
+    // 离开配置事件
+    leaveRoomBtn.onclick = function () {
+        videoConference.roomManager.leaveRoom()
+    };
 
     // 获取服务配置事件
     serverConfigBtn.onclick = function () {
@@ -110,6 +117,7 @@ function createOperator(videoConference, roomId){
         })
     }
 
+    contentDom.appendChild(leaveRoomBtn);
     contentDom.appendChild(serverConfigBtn);
     contentDom.appendChild(recordingBtn);
     contentDom.appendChild(stopRecordingBtn);
