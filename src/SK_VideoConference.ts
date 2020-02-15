@@ -10,7 +10,7 @@ import { restApi } from './lib/restApi';
 import RecordingManager from './lib/RecordingManager';
 import RoomManager, { CreateRoomOptions } from './lib/RoomManager';
 
-interface VideoConferenceOptions {
+export interface VideoConferenceOptions {
 	serverUrl: string;
 	serverSecret: string;
 	advancedConfig: OpenViduAdvancedConfiguration

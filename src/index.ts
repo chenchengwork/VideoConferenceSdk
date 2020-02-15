@@ -6,7 +6,8 @@
  */
 
 import SK_VideoConference from './SK_VideoConference';
-
+export { default as RecordingManager } from "./lib/RecordingManager";
+export { default as RoomManager } from "./lib/RoomManager";
 export { SK_VideoConference }
 
 // @ts-ignore
