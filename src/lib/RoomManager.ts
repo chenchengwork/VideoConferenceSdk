@@ -1,14 +1,30 @@
-import { Publisher, PublisherProperties, Session, StreamEvent, OpenVidu } from "openvidu-browser";
+import {Publisher, PublisherProperties, Session, StreamEvent, OpenVidu, Subscriber, SignalEvent} from "openvidu-browser";
 import {restApi} from "./restApi";
+
+interface InitPublisherFinishedParams {
+	publisher: Publisher;
+	video?: HTMLVideoElement;
+	sendUserSignal: (data: {[index: string]: any}) => void;
+}
+
+interface SubscriberJoinListenerParams {
+	event: StreamEvent;
+	video?: HTMLVideoElement;
+	metaData: {[index: string]: any};
+	subscriber: Subscriber;
+}
 
 export interface CreateRoomOptions {
 	roomId: string;
 	username: string;
 	metadata?: any;
+	isCreateVideo?: boolean;
 	publisherOptions?: PublisherProperties;
-	initPublisherFinished?: (publisher: Publisher, video: HTMLVideoElement) => void;
-	subscriberJoinListener?: (event: StreamEvent, video: HTMLVideoElement, metaData: object) => void;
+	initPublisherFinished?: (data: InitPublisherFinishedParams) => void;
+	subscriberJoinListener?: (data: SubscriberJoinListenerParams) => void;
 	subscriberLeaveListener?: (event: StreamEvent) => void;
+	subscribeToUserSignalListener?:(data: {[index: string]: any}) => void;
+	onError?: () => void;
 };
 
 export const defaultPublisherOptions = {
@@ -41,19 +57,36 @@ export default class RoomManager {
 	 * 加入房间
 	 */
 	joinRoom = async (params: CreateRoomOptions): Promise<{session: Session, publisher: Publisher}> => {
-		const { roomId, username, metadata, publisherOptions, initPublisherFinished, subscriberJoinListener, subscriberLeaveListener } = params;
-		if(typeof roomId === "undefined") throw new Error("roomId is required");
+		let {
+			roomId,
+			username,
+			isCreateVideo,
+			metadata,
+			publisherOptions,
+			initPublisherFinished,
+			subscriberJoinListener,
+			subscriberLeaveListener,
+			subscribeToUserSignalListener
+		} = params;
+
+		if(isCreateVideo === undefined) isCreateVideo = true;
+		if(typeof roomId === "undefined") throw new Error("roomId没有传入");
 
 		const session = this.session = this.ov.initSession();
 		const publisher = this.ov.initPublisher(undefined, Object.assign(defaultPublisherOptions, publisherOptions || {}));
 
-		//----------------------初始化监听事件-----------------------
-		session.on("streamCreated", (event: StreamEvent) => {
-			// console.log('---------------------------------------------------------streamCreated---------------------------------------------------------');
-			const subscriber = session.subscribe(event.stream, undefined);
-			const video = createVideoDom();
-			subscriber.addVideoElement(video);
+		// 发送用户信号
+		const sendUserSignal = (data: {[index: string]: any}) => {
+			const signalOptions = {
+				data: JSON.stringify(data),
+				type: 'userChanged',
+			};
+			session.signal(signalOptions);
+		};
 
+		//----------------------监听视频流创建-----------------------
+		session.on("streamCreated", (event: StreamEvent) => {
+			const subscriber = session.subscribe(event.stream, undefined);
 			let metaDataObj: {[index: string]: any} = {};
 			try{
 				const metaData = event.stream.connection.data.split('%')[0];
@@ -63,12 +96,26 @@ export default class RoomManager {
 			}catch (e) {
 
 			}
-			subscriberJoinListener && subscriberJoinListener(event, video, metaDataObj);
+
+			let video;
+			if(isCreateVideo) {
+				video = createVideoDom();
+				this.mirrorVideo(video);
+				subscriber.addVideoElement(video);
+			}
+
+			subscriberJoinListener && subscriberJoinListener({event, video, metaData: metaDataObj, subscriber});
 		});
 
+		//----------------------监听视频流销毁-----------------------
 		session.on("streamDestroyed", (event: StreamEvent) => {
-			// console.log('---------------------------------------------------------streamDestroyed---------------------------------------------------------');
 			subscriberLeaveListener && subscriberLeaveListener(event);
+		});
+
+		//----------------------监听用户信号-----------------------
+		session.on("signal:userChanged", (event: SignalEvent) => {
+			const data = JSON.parse(event.data);
+			subscribeToUserSignalListener && subscribeToUserSignalListener(data)
 		});
 
 		//-----------------------创建房间---------------------------
@@ -76,14 +123,28 @@ export default class RoomManager {
 		const { token } = await restApi.getRoomToken({session: roomId});
 		await session.connect(token, Object.assign({clientData: username || ""}, metadata || {}));
 		await session.publish(publisher);
-		const localVideo = createVideoDom();
-		publisher.addVideoElement(localVideo);
-		initPublisherFinished && initPublisherFinished(publisher, localVideo);
+		let localVideo;
+		if(isCreateVideo) {
+			localVideo = createVideoDom();
+			publisher.addVideoElement(localVideo);
+		}
+
+		initPublisherFinished && initPublisherFinished({publisher, video: localVideo, sendUserSignal});
 
 		window.addEventListener('beforeunload', this.leaveRoom);
 
 		return { session, publisher };
 	};
+
+	mirrorVideo = (video: HTMLVideoElement): void  => {
+		video.style.transform = 'rotateY(180deg)';
+		video.style.webkitTransform = 'rotateY(180deg)';
+	}
+
+	removeMirrorVideo = (video: HTMLVideoElement): void => {
+		video.style.transform = 'unset';
+		video.style.webkitTransform = 'unset';
+	}
 
 	/**
 	 * 离开房间

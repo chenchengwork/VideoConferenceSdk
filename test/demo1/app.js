@@ -1,15 +1,39 @@
-function createVideoWrapper(video, username){
-    const videoWrapperDom = document.createElement("div");
-    const usernameDom = document.createElement("div");
+function createVideoWrapper(video, username, videoConference, target){
+    var videoWrapperDom = document.createElement("div");
+    var usernameDom = document.createElement("div");
+    var operatorDom = document.createElement("div");
+    var audioBtn = document.createElement("button");
+    var videoBtn = document.createElement("button");
 
     videoWrapperDom.setAttribute("class", "video-wrapper");
     video.setAttribute("class", "video");
-
+    operatorDom.setAttribute("class", "operator");
     usernameDom.setAttribute("class", "username");
-    usernameDom.textContent = username;
 
+    usernameDom.textContent = username;
+    audioBtn.textContent = "声音关";
+    videoBtn.textContent = "视频关";
+
+    var isOpenAudio = true;
+    audioBtn.onclick = () => {
+        isOpenAudio = !isOpenAudio;
+        audioBtn.textContent = isOpenAudio ? "声音关" : "声音开";
+        videoConference.changeAudioStatus(target, isOpenAudio);
+    };
+
+    var isOpenVideo = true;
+    videoBtn.onclick = () => {
+        isOpenVideo = !isOpenVideo;
+        videoBtn.textContent = isOpenVideo ? "视频关" : "视频开";
+        videoConference.changeVideoStatus(target, isOpenVideo);
+    };
+
+    operatorDom.appendChild(audioBtn);
+    operatorDom.appendChild(videoBtn);
     videoWrapperDom.appendChild(video);
     videoWrapperDom.appendChild(usernameDom);
+    videoWrapperDom.appendChild(operatorDom);
+
 
     return videoWrapperDom;
 }
@@ -129,7 +153,23 @@ function createOperator(videoConference, roomId){
 
 
 function start() {
-    var videoConference = new SK_VideoConference();
+    var videoConference = new SK_VideoConference({
+        serverUrl: "https://check.shikongshuzhi.com/videoConference",
+        serverSecret: "MY_SECRET",
+        iceServers:[
+            {
+                urls:['stun:47.115.152.75:3478']
+            },
+            {
+                urls:[
+                    "turn:47.115.152.75:3478",
+                    "turn:47.115.152.75:3478?transport=tcp"
+                ],
+                username: 'kurento',
+                credential: 'kurento'
+            }
+        ]
+    });
 
     var roomId = "ss";  // 房间ID
     var localUsername = "本地用户_" + Math.floor(Math.random() * 100);
@@ -140,16 +180,24 @@ function start() {
     videoConference.joinRoom({
         roomId: roomId,
         username: localUsername,
-        initPublisherFinished: function(publisher, video){
-            var localVideoWrapper = createVideoWrapper(video, localUsername);
+        isCreateVideo: true,
+        initPublisherFinished: function(resp){
+            var video  = resp.video;
+            var publisher  = resp.publisher;
+
+            var localVideoWrapper = createVideoWrapper(video, localUsername, videoConference, publisher);
             leftDom.appendChild(localVideoWrapper);
 
             createOperator(videoConference, roomId);
         },
         // 监听订阅者加入
-        subscriberJoinListener: function (event, video, remoteMetaData) {
-            var username = remoteMetaData.username;
-            var videoWrapper = createVideoWrapper(video, username);
+        subscriberJoinListener: function (resp) {
+            var subscriber = resp.subscriber;
+            var username = resp.metaData.username;
+            var event = resp.event;
+            var video = resp.video;
+
+            var videoWrapper = createVideoWrapper(video, username, videoConference, subscriber);
 
             subscribers.push({
                 stream: event.stream,

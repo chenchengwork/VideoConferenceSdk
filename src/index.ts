@@ -6,9 +6,12 @@
  */
 
 import SK_VideoConference from './SK_VideoConference';
+
 export { default as RecordingManager } from "./lib/RecordingManager";
 export { default as RoomManager } from "./lib/RoomManager";
+export { OnFire } from "./OnFire";
 export { SK_VideoConference }
+export * from 'openvidu-browser';
 
 // @ts-ignore
 global.SK_VideoConference = SK_VideoConference;
