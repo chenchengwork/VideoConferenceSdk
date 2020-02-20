@@ -1,4 +1,4 @@
-function createVideoWrapper(video, username, videoConference, target){
+function createVideoWrapper(video, username, videoConference, target, masterVideo){
     var videoWrapperDom = document.createElement("div");
     var usernameDom = document.createElement("div");
     var operatorDom = document.createElement("div");
@@ -13,6 +13,11 @@ function createVideoWrapper(video, username, videoConference, target){
     usernameDom.textContent = username;
     audioBtn.textContent = "声音关";
     videoBtn.textContent = "视频关";
+
+    video.onclick = () => {
+        // 将视频流添加到中间video中
+        masterVideo.srcObject = target.stream.getMediaStream();
+    };
 
     var isOpenAudio = true;
     audioBtn.onclick = () => {
@@ -151,6 +156,20 @@ function createOperator(videoConference, roomId){
     contentDom.appendChild(screenShareBtn);
 }
 
+function createMasterVideo() {
+    var contentDom = document.querySelector(".content");
+    var masterVideo = document.createElement("video");
+
+    masterVideo.autoplay = true;
+    masterVideo.style.width = "100%";
+    masterVideo.style.height = "100%";
+    masterVideo.style.objectFit = "cover";
+    masterVideo.style.transform = "rotateY(180deg)";
+
+    contentDom.appendChild(masterVideo)
+
+    return masterVideo;
+}
 
 function start() {
     var videoConference = new SK_VideoConference({
@@ -171,11 +190,14 @@ function start() {
         ]
     });
 
-    var roomId = "ss";  // 房间ID
+    var roomId = "ss1";  // 房间ID
     var localUsername = "本地用户_" + Math.floor(Math.random() * 100);
     var leftDom = document.querySelector(".left");
     var rightDom = document.querySelector(".right");
     var subscribers = [];
+
+    // 创建中间视频video
+    var masterVideo = createMasterVideo();
 
     videoConference.joinRoom({
         roomId: roomId,
@@ -185,10 +207,12 @@ function start() {
             var video  = resp.video;
             var publisher  = resp.publisher;
 
-            var localVideoWrapper = createVideoWrapper(video, localUsername, videoConference, publisher);
+            var localVideoWrapper = createVideoWrapper(video, localUsername, videoConference, publisher, masterVideo);
             leftDom.appendChild(localVideoWrapper);
 
-            createOperator(videoConference, roomId);
+            // createOperator(videoConference, roomId);
+
+
         },
         // 监听订阅者加入
         subscriberJoinListener: function (resp) {
@@ -197,7 +221,7 @@ function start() {
             var event = resp.event;
             var video = resp.video;
 
-            var videoWrapper = createVideoWrapper(video, username, videoConference, subscriber);
+            var videoWrapper = createVideoWrapper(video, username, videoConference, subscriber, masterVideo);
 
             subscribers.push({
                 stream: event.stream,
