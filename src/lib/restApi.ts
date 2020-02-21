@@ -120,7 +120,7 @@ export interface ServerConfigResponseData {
 }
 
 
-class RestApi {
+export class RestApi {
 	private config = {
 		serverUrl: "",
 		serverSecret: "",

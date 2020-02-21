@@ -47,6 +47,9 @@ function createOperator(videoConference, roomId){
     var recordingManager = videoConference.recordingManager;
     var roomManager = videoConference.roomManager;
 
+    var operatorDom = document.createElement("div");
+    operatorDom.style.position = "absolute";
+    operatorDom.style.top = 0;
     var contentDom = document.querySelector(".content");
     var serverConfigBtn = document.createElement("button");
     var recordingBtn = document.createElement("button");
@@ -56,6 +59,7 @@ function createOperator(videoConference, roomId){
     var getAllRecordingBtn = document.createElement("button");
     var screenShareBtn = document.createElement("button");
     var leaveRoomBtn = document.createElement("button");
+    var closeRoomBtn = document.createElement("button");
 
     leaveRoomBtn.textContent = "离开房间";
     serverConfigBtn.textContent = "获取服务配置";
@@ -65,6 +69,7 @@ function createOperator(videoConference, roomId){
     deleteRecordingBtn.textContent = "删除录制";
     getAllRecordingBtn.textContent = "获取所有录制信息";
     screenShareBtn.textContent = "分享屏幕";
+    closeRoomBtn.textContent = "关闭会议";
 
     // 离开配置事件
     leaveRoomBtn.onclick = function () {
@@ -141,19 +146,28 @@ function createOperator(videoConference, roomId){
                 var localVideoWrapper = createVideoWrapper(video, screenShareName);
                 leftDom.appendChild(localVideoWrapper);
 
-                createOperator(videoConference, roomId);
+                // createOperator(videoConference, roomId);
             },
         })
     }
 
-    contentDom.appendChild(leaveRoomBtn);
-    contentDom.appendChild(serverConfigBtn);
-    contentDom.appendChild(recordingBtn);
-    contentDom.appendChild(stopRecordingBtn);
-    contentDom.appendChild(getRecordingBtn);
-    contentDom.appendChild(deleteRecordingBtn);
-    contentDom.appendChild(getAllRecordingBtn);
-    contentDom.appendChild(screenShareBtn);
+    // 关闭会议
+    closeRoomBtn.onclick = function(){
+        console.log("destroyRoom")
+        videoConference.roomManager.destroyRoom(roomId);
+    };
+
+    operatorDom.appendChild(leaveRoomBtn);
+    operatorDom.appendChild(serverConfigBtn);
+    operatorDom.appendChild(recordingBtn);
+    operatorDom.appendChild(stopRecordingBtn);
+    operatorDom.appendChild(getRecordingBtn);
+    operatorDom.appendChild(deleteRecordingBtn);
+    operatorDom.appendChild(getAllRecordingBtn);
+    operatorDom.appendChild(screenShareBtn);
+    operatorDom.appendChild(closeRoomBtn);
+
+    contentDom.appendChild(operatorDom);
 }
 
 function createMasterVideo() {
@@ -166,7 +180,7 @@ function createMasterVideo() {
     masterVideo.style.objectFit = "cover";
     masterVideo.style.transform = "rotateY(180deg)";
 
-    contentDom.appendChild(masterVideo)
+    contentDom.appendChild(masterVideo);
 
     return masterVideo;
 }
@@ -210,9 +224,7 @@ function start() {
             var localVideoWrapper = createVideoWrapper(video, localUsername, videoConference, publisher, masterVideo);
             leftDom.appendChild(localVideoWrapper);
 
-            // createOperator(videoConference, roomId);
-
-
+            createOperator(videoConference, roomId);
         },
         // 监听订阅者加入
         subscriberJoinListener: function (resp) {

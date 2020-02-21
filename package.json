@@ -1,6 +1,6 @@
 {
   "name": "videoconferencesdk",
-  "version": "1.0.0",
+  "version": "0.5.1",
   "scripts": {
     "build": "webpack --optimize-minimize --config webpack.prod.js",
     "dev": "webpack-dev-server --open --config webpack.dev.js",

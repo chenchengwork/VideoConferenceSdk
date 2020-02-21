@@ -1,10 +1,18 @@
-import {Publisher, PublisherProperties, Session, StreamEvent, OpenVidu, Subscriber, SignalEvent} from "openvidu-browser";
+import {
+	Publisher,
+	PublisherProperties,
+	Session,
+	StreamEvent,
+	OpenVidu,
+	Subscriber,
+	SessionDisconnectedEvent,
+	ConnectionEvent
+} from "openvidu-browser";
 import {restApi} from "./restApi";
-
+import { mirrorVideo, removeMirrorVideo, createVideoDom } from '../util';
 interface InitPublisherFinishedParams {
 	publisher: Publisher;
 	video?: HTMLVideoElement;
-	sendUserSignal: (data: {[index: string]: any}) => void;
 }
 
 interface SubscriberJoinListenerParams {
@@ -23,7 +31,8 @@ export interface CreateRoomOptions {
 	initPublisherFinished?: (data: InitPublisherFinishedParams) => void;
 	subscriberJoinListener?: (data: SubscriberJoinListenerParams) => void;
 	subscriberLeaveListener?: (event: StreamEvent) => void;
-	subscribeToUserSignalListener?:(data: {[index: string]: any}) => void;
+	connectionDestroyedListener?: (event: ConnectionEvent) => void;
+	sessionDisconnectedListener?: (event: SessionDisconnectedEvent) => void;
 	onError?: () => void;
 };
 
@@ -66,7 +75,8 @@ export default class RoomManager {
 			initPublisherFinished,
 			subscriberJoinListener,
 			subscriberLeaveListener,
-			subscribeToUserSignalListener
+			connectionDestroyedListener,
+			sessionDisconnectedListener,
 		} = params;
 
 		if(isCreateVideo === undefined) isCreateVideo = true;
@@ -74,15 +84,6 @@ export default class RoomManager {
 
 		const session = this.session = this.ov.initSession();
 		const publisher = this.ov.initPublisher(undefined, Object.assign(defaultPublisherOptions, publisherOptions || {}));
-
-		// 发送用户信号
-		const sendUserSignal = (data: {[index: string]: any}) => {
-			const signalOptions = {
-				data: JSON.stringify(data),
-				type: 'userChanged',
-			};
-			session.signal(signalOptions);
-		};
 
 		//----------------------监听视频流创建-----------------------
 		session.on("streamCreated", (event: StreamEvent) => {
@@ -100,7 +101,7 @@ export default class RoomManager {
 			let video;
 			if(isCreateVideo) {
 				video = createVideoDom();
-				this.mirrorVideo(video);
+				mirrorVideo(video);
 				subscriber.addVideoElement(video);
 			}
 
@@ -112,11 +113,16 @@ export default class RoomManager {
 			subscriberLeaveListener && subscriberLeaveListener(event);
 		});
 
-		//----------------------监听用户信号-----------------------
-		session.on("signal:userChanged", (event: SignalEvent) => {
-			const data = JSON.parse(event.data);
-			subscribeToUserSignalListener && subscribeToUserSignalListener(data)
+		//---------------------监听连接销毁--------------------------
+		session.on("connectionDestroyed", (event: ConnectionEvent) => {
+			connectionDestroyedListener && connectionDestroyedListener(event);
 		});
+
+		//---------------------监听会议销毁--------------------------
+		session.on(" sessionDisconnected", (event: SessionDisconnectedEvent) => {
+			sessionDisconnectedListener && sessionDisconnectedListener(event);
+		});
+
 
 		//-----------------------创建房间---------------------------
 		await restApi.createRoom({customSessionId: roomId});
@@ -129,22 +135,13 @@ export default class RoomManager {
 			publisher.addVideoElement(localVideo);
 		}
 
-		initPublisherFinished && initPublisherFinished({publisher, video: localVideo, sendUserSignal});
+		initPublisherFinished && initPublisherFinished({publisher, video: localVideo});
 
+		window.addEventListener('unload', this.leaveRoom);
 		window.addEventListener('beforeunload', this.leaveRoom);
 
 		return { session, publisher };
 	};
-
-	mirrorVideo = (video: HTMLVideoElement): void  => {
-		video.style.transform = 'rotateY(180deg)';
-		video.style.webkitTransform = 'rotateY(180deg)';
-	}
-
-	removeMirrorVideo = (video: HTMLVideoElement): void => {
-		video.style.transform = 'unset';
-		video.style.webkitTransform = 'unset';
-	}
 
 	/**
 	 * 离开房间
@@ -157,24 +154,17 @@ export default class RoomManager {
 	 * 获取房间信息
 	 * @param roomId
 	 */
-	getRoomInfo = (roomId: string) => restApi.getRoomInfo(roomId);
+	getRoomInfo = restApi.getRoomInfo;
 
 	/**
 	 * 获取所有房间信息
 	 */
-	getAllRoomInfo = () => restApi.getAllRoomInfo();
+	getAllRoomInfo = restApi.getAllRoomInfo;
 
 	/**
 	 * 销毁会话房间
 	 * @param roomId
 	 */
-	destroyRoom = (roomId: string) => restApi.destroyRoom(roomId);
+	destroyRoom = restApi.destroyRoom;
 }
 
-// 创建video dom
-const createVideoDom = (): HTMLVideoElement => {
-	const video = document.createElement("video");
-	video.style.objectFit = "cover";
-	video.style.backgroundColor = "#000";
-	return video;
-};

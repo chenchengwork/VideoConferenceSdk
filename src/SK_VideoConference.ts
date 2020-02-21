@@ -11,6 +11,7 @@ import { restApi } from './lib/restApi';
 import RecordingManager from './lib/RecordingManager';
 import RoomManager, { CreateRoomOptions } from './lib/RoomManager';
 import { OnFire } from './OnFire';
+import Signal from  './lib/Signal';
 
 export interface VideoConferenceOptions {
 	serverUrl?: string;
@@ -46,11 +47,12 @@ const defaultVideoConferenceOptions = {
 };
 
 class SK_VideoConference {
+	static Signal = Signal;
 	recordingManager: RecordingManager;
 	roomManager: RoomManager;
 	joinRoom: (params: CreateRoomOptions) => Promise<{session: Session, publisher: Publisher}>;
 	onFire: OnFire;
-	private ov: OpenVidu;
+	ov: OpenVidu;
 
 	constructor(options?: VideoConferenceOptions) {
 		const ov = this.ov = new OpenVidu();
@@ -98,6 +100,7 @@ class SK_VideoConference {
 	 */
 	getServerConfig = restApi.getServerConfig;
 }
+
 
 export default SK_VideoConference
 
