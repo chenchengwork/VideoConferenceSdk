@@ -59,9 +59,10 @@ function createOperator(videoConference, roomId){
     var getAllRecordingBtn = document.createElement("button");
     var screenShareBtn = document.createElement("button");
     var leaveRoomBtn = document.createElement("button");
-    var closeRoomBtn = document.createElement("button");
+    var destroyRoomBtn = document.createElement("button");
 
     leaveRoomBtn.textContent = "离开房间";
+    destroyRoomBtn.textContent = "销毁房间";
     serverConfigBtn.textContent = "获取服务配置";
     recordingBtn.textContent = "开始录制";
     stopRecordingBtn.textContent = "停止录制";
@@ -69,7 +70,6 @@ function createOperator(videoConference, roomId){
     deleteRecordingBtn.textContent = "删除录制";
     getAllRecordingBtn.textContent = "获取所有录制信息";
     screenShareBtn.textContent = "分享屏幕";
-    closeRoomBtn.textContent = "关闭会议";
 
     // 离开配置事件
     leaveRoomBtn.onclick = function () {
@@ -153,7 +153,6 @@ function createOperator(videoConference, roomId){
 
     // 关闭会议
     closeRoomBtn.onclick = function(){
-        console.log("destroyRoom")
         videoConference.roomManager.destroyRoom(roomId);
     };
 
@@ -165,7 +164,7 @@ function createOperator(videoConference, roomId){
     operatorDom.appendChild(deleteRecordingBtn);
     operatorDom.appendChild(getAllRecordingBtn);
     operatorDom.appendChild(screenShareBtn);
-    operatorDom.appendChild(closeRoomBtn);
+    operatorDom.appendChild(destroyRoomBtn);
 
     contentDom.appendChild(operatorDom);
 }
