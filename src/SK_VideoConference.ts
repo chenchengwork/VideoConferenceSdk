@@ -12,6 +12,7 @@ import RecordingManager from './lib/RecordingManager';
 import RoomManager, { CreateRoomOptions } from './lib/RoomManager';
 import { OnFire } from './OnFire';
 import Signal from  './lib/Signal';
+import * as util from './util';
 
 export interface VideoConferenceOptions {
 	serverUrl?: string;
@@ -53,6 +54,7 @@ class SK_VideoConference {
 	joinRoom: (params: CreateRoomOptions) => Promise<{session: Session, publisher: Publisher}>;
 	onFire: OnFire;
 	ov: OpenVidu;
+	util = util;
 
 	constructor(options?: VideoConferenceOptions) {
 		const ov = this.ov = new OpenVidu();
@@ -72,6 +74,22 @@ class SK_VideoConference {
 		 */
 		this.joinRoom = this.roomManager.joinRoom
 	}
+
+	/**
+	 * 检查支持设备的情况
+	 */
+	checkSupportDevice = () => new Promise<{isExistAudioDevice: boolean;isExistVideoDevice: boolean;}>((resolve, reject) => {
+		this.ov.getDevices().then((data) => {
+			const audioDevices =  data.filter(item => item.kind === "audioinput")
+			const videoDevices =  data.filter(item => item.kind === "videoinput")
+			resolve({
+				isExistAudioDevice: audioDevices.length > 0,
+				isExistVideoDevice: videoDevices.length > 0,
+			})
+		}).catch((e) => {
+			reject(e);
+		});
+	})
 
 	/**
 	 * 控制声音

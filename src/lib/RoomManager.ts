@@ -102,6 +102,13 @@ export default class RoomManager {
 			if(isCreateVideo) {
 				video = createVideoDom();
 				mirrorVideo(video);
+				// 设置分享屏幕
+				if(subscriber.stream.typeOfVideo == "SCREEN"){
+					removeMirrorVideo(video)
+				}
+				if(subscriber.stream.typeOfVideo == "CAMERA"){ }
+				if(subscriber.stream.typeOfVideo == "CUSTOM"){ }
+
 				subscriber.addVideoElement(video);
 			}
 
@@ -149,6 +156,36 @@ export default class RoomManager {
 	leaveRoom = () => {
 		this.session && this.session.disconnect();
 	};
+
+	/**
+	 * 获取分享屏幕的publisher
+	 */
+	getShareScreenPublisher = (publisherOptions?: PublisherProperties) => new Promise<Publisher>((resolve, reject) => {
+		const videoSource = navigator.userAgent.indexOf('Firefox') !== -1 ? 'window' : 'screen';
+		const options = Object.assign({
+			videoSource,
+			publishAudio: true,
+			publishVideo: true,
+			mirror: false,
+		}, publisherOptions || {});
+
+		const publisher = this.ov.initPublisher(undefined, options, (error) => {
+				if (error && error.name === 'SCREEN_EXTENSION_NOT_INSTALLED') {
+					reject("屏幕分享扩展没有安装");
+				} else if (error && error.name === 'SCREEN_SHARING_NOT_SUPPORTED') {
+					reject('当前浏览器不支持分享屏幕');
+				} else if (error && error.name === 'SCREEN_EXTENSION_DISABLED') {
+					reject('你需要开启分享屏幕扩展');
+				} else if (error && error.name === 'SCREEN_CAPTURE_DENIED') {
+					reject('请选择一个窗口和应用');
+				}
+			}
+		);
+
+		publisher.once("accessAllowed", (e) => {
+			resolve(publisher);
+		})
+	});
 
 	/**
 	 * 获取房间信息

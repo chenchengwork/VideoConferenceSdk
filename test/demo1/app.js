@@ -43,7 +43,7 @@ function createVideoWrapper(video, username, videoConference, target, masterVide
     return videoWrapperDom;
 }
 
-function createOperator(videoConference, roomId){
+function createOperator(videoConference, roomId, masterVideo, localPublisher){
     var recordingManager = videoConference.recordingManager;
     var roomManager = videoConference.roomManager;
 
@@ -134,25 +134,25 @@ function createOperator(videoConference, roomId){
 
     // 分享屏幕事件
     screenShareBtn.onclick = function(){
-        var leftDom = document.querySelector(".left");
-        var screenShareName = "我的分享屏幕"+ Math.floor(Math.random() * 100);
-        roomManager.joinRoom({
-            roomId: roomId,
-            username: screenShareName,
-            publisherOptions: {
-                videoSource: "screen",  // 设置为屏幕分享
-            },
-            initPublisherFinished: function(publisher, video){
-                var localVideoWrapper = createVideoWrapper(video, screenShareName);
-                leftDom.appendChild(localVideoWrapper);
+        roomManager.getShareScreenPublisher().then((publisher) => {
+            roomManager.session.unpublish(localPublisher);
+            roomManager.session.publish(publisher);
+            publisher.addVideoElement(masterVideo)
 
-                // createOperator(videoConference, roomId);
-            },
+            // 用于解除分享视频流
+            // setTimeout(() => {
+            //     console.log("恢复非分享视频流")
+            //     roomManager.session.unpublish(publisher);
+            //     roomManager.session.publish(localPublisher);
+            // }, 5000)
+
+        }).catch(errorMsg => {
+            alert(errorMsg);
         })
     }
 
     // 关闭会议
-    closeRoomBtn.onclick = function(){
+    destroyRoomBtn.onclick = function(){
         videoConference.roomManager.destroyRoom(roomId);
     };
 
@@ -185,25 +185,31 @@ function createMasterVideo() {
 }
 
 function start() {
+    // var videoConference = new SK_VideoConference({
+    //     serverUrl: "https://check.shikongshuzhi.com/videoConference",
+    //     serverSecret: "MY_SECRET",
+    //     iceServers:[
+    //         {
+    //             urls:['stun:47.115.152.75:3478']
+    //         },
+    //         {
+    //             urls:[
+    //                 "turn:47.115.152.75:3478",
+    //                 "turn:47.115.152.75:3478?transport=tcp"
+    //             ],
+    //             username: 'kurento',
+    //             credential: 'kurento'
+    //         }
+    //     ]
+    // });
+
     var videoConference = new SK_VideoConference({
-        serverUrl: "https://check.shikongshuzhi.com/videoConference",
+        serverUrl: "https://192.168.1.104:4443",
         serverSecret: "MY_SECRET",
-        iceServers:[
-            {
-                urls:['stun:47.115.152.75:3478']
-            },
-            {
-                urls:[
-                    "turn:47.115.152.75:3478",
-                    "turn:47.115.152.75:3478?transport=tcp"
-                ],
-                username: 'kurento',
-                credential: 'kurento'
-            }
-        ]
+        iceServers:[]
     });
 
-    var roomId = "ss1";  // 房间ID
+    var roomId = "ss2";  // 房间ID
     var localUsername = "本地用户_" + Math.floor(Math.random() * 100);
     var leftDom = document.querySelector(".left");
     var rightDom = document.querySelector(".right");
@@ -211,6 +217,19 @@ function start() {
 
     // 创建中间视频video
     var masterVideo = createMasterVideo();
+
+    // 检查设备支持情况
+    videoConference.checkSupportDevice().then((data) => {
+        if(!data.isExistAudioDevice){
+            alert("未检测到麦克风");
+        }
+
+        if(!data.isExistVideoDevice){
+            alert("未检测到摄像头");
+        }
+    }).catch(e => {
+        console.error(e);
+    });
 
     videoConference.joinRoom({
         roomId: roomId,
@@ -223,7 +242,7 @@ function start() {
             var localVideoWrapper = createVideoWrapper(video, localUsername, videoConference, publisher, masterVideo);
             leftDom.appendChild(localVideoWrapper);
 
-            createOperator(videoConference, roomId);
+            createOperator(videoConference, roomId, masterVideo, publisher);
         },
         // 监听订阅者加入
         subscriberJoinListener: function (resp) {
@@ -233,13 +252,11 @@ function start() {
             var video = resp.video;
 
             var videoWrapper = createVideoWrapper(video, username, videoConference, subscriber, masterVideo);
-
+            rightDom.appendChild(videoWrapper);
             subscribers.push({
                 stream: event.stream,
                 videoWrapper:videoWrapper,
             });
-
-            rightDom.appendChild(videoWrapper);
         },
         // 监听订阅者离开
         subscriberLeaveListener: function (event) {
