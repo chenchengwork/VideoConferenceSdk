@@ -6,7 +6,7 @@ import {
 	OpenVidu,
 	Subscriber,
 	SessionDisconnectedEvent,
-	ConnectionEvent
+	ConnectionEvent, PublisherSpeakingEvent
 } from "openvidu-browser";
 import {restApi} from "./restApi";
 import { mirrorVideo, removeMirrorVideo, createVideoDom } from '../util';
@@ -25,6 +25,7 @@ interface SubscriberJoinListenerParams {
 export interface CreateRoomOptions {
 	roomId: string;
 	username: string;
+	role?: "MODERATOR" |  "PUBLISHER" | "SUBSCRIBER";
 	metadata?: any;
 	isCreateVideo?: boolean;
 	publisherOptions?: PublisherProperties;
@@ -33,6 +34,8 @@ export interface CreateRoomOptions {
 	subscriberLeaveListener?: (event: StreamEvent) => void;
 	connectionDestroyedListener?: (event: ConnectionEvent) => void;
 	sessionDisconnectedListener?: (event: SessionDisconnectedEvent) => void;
+	publisherStartSpeakingListener?:(event: PublisherSpeakingEvent) => void;
+	publisherStopSpeakingListener?:(event: PublisherSpeakingEvent) => void;
 	onError?: () => void;
 };
 
@@ -69,6 +72,7 @@ export default class RoomManager {
 		let {
 			roomId,
 			username,
+			role,
 			isCreateVideo,
 			metadata,
 			publisherOptions,
@@ -77,13 +81,22 @@ export default class RoomManager {
 			subscriberLeaveListener,
 			connectionDestroyedListener,
 			sessionDisconnectedListener,
+			publisherStartSpeakingListener,
+			publisherStopSpeakingListener
 		} = params;
+		if(role && !["MODERATOR",  "PUBLISHER", "SUBSCRIBER"].includes(role)){
+			throw new Error(`当前传入的role为"${role}", 但是role只接受"MODERATOR"|"PUBLISHER"|"SUBSCRIBER"`);
+		}
 
 		if(isCreateVideo === undefined) isCreateVideo = true;
 		if(typeof roomId === "undefined") throw new Error("roomId没有传入");
 
 		const session = this.session = this.ov.initSession();
-		const publisher = this.ov.initPublisher(undefined, Object.assign(defaultPublisherOptions, publisherOptions || {}));
+
+		//--------------------发布者需要监听的事件----------------------
+		// publisher.on("streamDestroyed", () => {});
+		// publisher.on("connectionDestroyed", () => {});
+		// publisher.on("sessionDisconnected", () => {});
 
 		//----------------------监听视频流创建-----------------------
 		session.on("streamCreated", (event: StreamEvent) => {
@@ -130,19 +143,35 @@ export default class RoomManager {
 			sessionDisconnectedListener && sessionDisconnectedListener(event);
 		});
 
+		//---------------------监听发布者开始说话--------------------------
+		// session.on("publisherStartSpeaking", (event: PublisherSpeakingEvent) => {
+		// 	publisherStartSpeakingListener && publisherStartSpeakingListener(event);
+		// });
+
+		//---------------------监听发布者停止说话--------------------------
+		// session.on("publisherStopSpeaking", (event: PublisherSpeakingEvent) => {
+		// 	publisherStopSpeakingListener && publisherStopSpeakingListener(event);
+		// });
+
 
 		//-----------------------创建房间---------------------------
 		await restApi.createRoom({customSessionId: roomId});
-		const { token } = await restApi.getRoomToken({session: roomId});
+		const { token } = await restApi.getRoomToken({session: roomId, role: role || "PUBLISHER"});
 		await session.connect(token, Object.assign({clientData: username || ""}, metadata || {}));
-		await session.publish(publisher);
-		let localVideo;
-		if(isCreateVideo) {
-			localVideo = createVideoDom();
-			publisher.addVideoElement(localVideo);
-		}
 
-		initPublisherFinished && initPublisherFinished({publisher, video: localVideo});
+		let publisher: Publisher;
+
+		//
+		if(role !== "SUBSCRIBER") {
+			const publisher = this.ov.initPublisher(undefined, Object.assign(defaultPublisherOptions, publisherOptions || {}));
+			await session.publish(publisher);
+			let localVideo;
+			if (isCreateVideo) {
+				localVideo = createVideoDom();
+				publisher.addVideoElement(localVideo);
+			}
+			initPublisherFinished && initPublisherFinished({publisher, video: localVideo});
+		}
 
 		window.addEventListener('unload', this.leaveRoom);
 		window.addEventListener('beforeunload', this.leaveRoom);
@@ -160,7 +189,7 @@ export default class RoomManager {
 	/**
 	 * 获取分享屏幕的publisher
 	 */
-	getShareScreenPublisher = (publisherOptions?: PublisherProperties) => new Promise<Publisher>((resolve, reject) => {
+	getShareScreenPublisher = (publisherOptions?: PublisherProperties, onStopShareListener?: (publisher: Publisher) => void) => new Promise<Publisher>((resolve, reject) => {
 		const videoSource = navigator.userAgent.indexOf('Firefox') !== -1 ? 'window' : 'screen';
 		const options = Object.assign({
 			videoSource,
@@ -183,6 +212,10 @@ export default class RoomManager {
 		);
 
 		publisher.once("accessAllowed", (e) => {
+			publisher.stream.getMediaStream().getVideoTracks()[0].addEventListener('ended', () => {
+				onStopShareListener && onStopShareListener(publisher);
+			});
+
 			resolve(publisher);
 		})
 	});
