@@ -249,6 +249,10 @@ function start() {
         roomId: roomId,
         username: localUsername,
         role: urlParams.role || "PUBLISHER", // 角色只接受这三种 "MODERATOR" |  "PUBLISHER" | "SUBSCRIBER"
+        // 用人员加入会议时，额外添加的附属信息
+        metadata: {
+            phone: "15010003357"
+        },
         isCreateVideo: true,
         initPublisherFinished: function(resp){
             var video  = resp.video;
@@ -268,7 +272,8 @@ function start() {
         // 监听订阅者加入
         subscriberJoinListener: function (resp) {
             var subscriber = resp.subscriber;
-            var username = resp.metaData.username;
+            // 获取会议人员进入会议时的附属信息
+            const { username, phone } = resp.metaData;
             var event = resp.event;
             var video = resp.video;
 
