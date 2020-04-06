@@ -28,12 +28,12 @@ const defaultVideoConferenceOptions = {
 	advancedConfig: {
 		iceServers:[
 			{
-				urls:['stun:47.115.152.75:3478']
+				urls:['stun:check.shikongshuzhi.com:3478']
 			},
 			{
 				urls:[
-					"turn:47.115.152.75:3478",
-					"turn:47.115.152.75:3478?transport=tcp"
+					"turn:check.shikongshuzhi.com:3478",
+					"turn:check.shikongshuzhi.com:3478?transport=tcp"
 				],
 				username: 'kurento',
 				credential: 'kurento'
@@ -61,8 +61,9 @@ class SK_VideoConference {
 		this.onFire = new OnFire();
 		this.recordingManager = new RecordingManager();
 		this.roomManager = new RoomManager(ov);
-
-		const { serverUrl, serverSecret, advancedConfig } = Object.assign(defaultVideoConferenceOptions,options || {});
+		options = options || {};
+		const advancedConfig = Object.assign(defaultVideoConferenceOptions.advancedConfig, options.advancedConfig || {});
+		const { serverUrl, serverSecret } = Object.assign(defaultVideoConferenceOptions,options || {});
 
 		restApi.setConfig(serverUrl, serverSecret);
 

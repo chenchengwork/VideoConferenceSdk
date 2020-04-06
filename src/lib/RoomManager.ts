@@ -92,6 +92,7 @@ export default class RoomManager {
 		if(typeof roomId === "undefined") throw new Error("roomId没有传入");
 
 		const session = this.session = this.ov.initSession();
+		const publisher = this.ov.initPublisher(undefined, Object.assign(defaultPublisherOptions, publisherOptions || {}));
 
 		//--------------------发布者需要监听的事件----------------------
 		// publisher.on("streamDestroyed", () => {});
@@ -158,20 +159,14 @@ export default class RoomManager {
 		await restApi.createRoom({customSessionId: roomId});
 		const { token } = await restApi.getRoomToken({session: roomId, role: role || "PUBLISHER"});
 		await session.connect(token, Object.assign({clientData: username || ""}, metadata || {}));
-
-		let publisher: Publisher;
-
-		//
-		if(role !== "SUBSCRIBER") {
-			const publisher = this.ov.initPublisher(undefined, Object.assign(defaultPublisherOptions, publisherOptions || {}));
-			await session.publish(publisher);
-			let localVideo;
-			if (isCreateVideo) {
-				localVideo = createVideoDom();
-				publisher.addVideoElement(localVideo);
-			}
-			initPublisherFinished && initPublisherFinished({publisher, video: localVideo});
+		await session.publish(publisher);
+		let localVideo;
+		if(isCreateVideo) {
+			localVideo = createVideoDom();
+			publisher.addVideoElement(localVideo);
 		}
+
+		initPublisherFinished && initPublisherFinished({publisher, video: localVideo});
 
 		window.addEventListener('unload', this.leaveRoom);
 		window.addEventListener('beforeunload', this.leaveRoom);
@@ -236,5 +231,9 @@ export default class RoomManager {
 	 * @param roomId
 	 */
 	destroyRoom = restApi.destroyRoom;
+
+	disconnectionUser = restApi.disconnectionUser
+
+	unPublishUser = restApi.unPublishUser
 }
 

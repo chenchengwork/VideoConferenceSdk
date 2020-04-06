@@ -9,7 +9,6 @@ type MsgListener = (data: MsgBody) => void;
 
 export default class Signal {
 	private roomManager: RoomManager
-
 	constructor(roomManager: RoomManager) {
 		this.roomManager = roomManager;
 	}

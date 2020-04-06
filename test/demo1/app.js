@@ -1,10 +1,10 @@
 function createVideoWrapper(video, username, videoConference, target, masterVideo){
-    var videoWrapperDom = document.createElement("div");
-    var usernameDom = document.createElement("div");
-    var operatorDom = document.createElement("div");
-    var audioBtn = document.createElement("button");
-    var videoBtn = document.createElement("button");
-    var removeUserBtn = document.createElement("button");
+    const videoWrapperDom = document.createElement("div");
+    const usernameDom = document.createElement("div");
+    const operatorDom = document.createElement("div");
+    const audioBtn = document.createElement("button");
+    const videoBtn = document.createElement("button");
+    const removeUserBtn = document.createElement("button");
 
     videoWrapperDom.setAttribute("class", "video-wrapper");
     video.setAttribute("class", "video");
@@ -21,14 +21,14 @@ function createVideoWrapper(video, username, videoConference, target, masterVide
         masterVideo.srcObject = target.stream.getMediaStream();
     };
 
-    var isOpenAudio = true;
+    let isOpenAudio = true;
     audioBtn.onclick = () => {
         isOpenAudio = !isOpenAudio;
         audioBtn.textContent = isOpenAudio ? "声音关" : "声音开";
         videoConference.changeAudioStatus(target, isOpenAudio);
     };
 
-    var isOpenVideo = true;
+    let isOpenVideo = true;
     videoBtn.onclick = () => {
         isOpenVideo = !isOpenVideo;
         videoBtn.textContent = isOpenVideo ? "视频关" : "视频开";
@@ -51,22 +51,22 @@ function createVideoWrapper(video, username, videoConference, target, masterVide
 }
 
 function createOperator(videoConference, roomId, masterVideo, localPublisher){
-    var recordingManager = videoConference.recordingManager;
-    var roomManager = videoConference.roomManager;
+    const recordingManager = videoConference.recordingManager;
+    const roomManager = videoConference.roomManager;
 
-    var operatorDom = document.createElement("div");
+    const operatorDom = document.createElement("div");
     operatorDom.style.position = "absolute";
     operatorDom.style.top = 0;
-    var contentDom = document.querySelector(".content");
-    var serverConfigBtn = document.createElement("button");
-    var recordingBtn = document.createElement("button");
-    var stopRecordingBtn = document.createElement("button");
-    var deleteRecordingBtn = document.createElement("button");
-    var getRecordingBtn = document.createElement("button");
-    var getAllRecordingBtn = document.createElement("button");
-    var screenShareBtn = document.createElement("button");
-    var leaveRoomBtn = document.createElement("button");
-    var destroyRoomBtn = document.createElement("button");
+    const contentDom = document.querySelector(".content");
+    const serverConfigBtn = document.createElement("button");
+    const recordingBtn = document.createElement("button");
+    const stopRecordingBtn = document.createElement("button");
+    const deleteRecordingBtn = document.createElement("button");
+    const getRecordingBtn = document.createElement("button");
+    const getAllRecordingBtn = document.createElement("button");
+    const screenShareBtn = document.createElement("button");
+    const leaveRoomBtn = document.createElement("button");
+    const destroyRoomBtn = document.createElement("button");
 
     leaveRoomBtn.textContent = "离开房间";
     destroyRoomBtn.textContent = "销毁房间";
@@ -176,8 +176,8 @@ function createOperator(videoConference, roomId, masterVideo, localPublisher){
 }
 
 function createMasterVideo() {
-    var contentDom = document.querySelector(".content");
-    var masterVideo = document.createElement("video");
+    const contentDom = document.querySelector(".content");
+    const masterVideo = document.createElement("video");
 
     masterVideo.autoplay = true;
     masterVideo.style.width = "100%";
@@ -199,38 +199,17 @@ function getURLParameters(search) {
 
 
 function start() {
-    var videoConference = new SK_VideoConference({
-        serverUrl: "https://check.shikongshuzhi.com/videoConference",
-        serverSecret: "MY_SECRET",
-        iceServers:[
-            {
-                urls:['stun:47.115.152.75:3478']
-            },
-            {
-                urls:[
-                    "turn:47.115.152.75:3478",
-                    "turn:47.115.152.75:3478?transport=tcp"
-                ],
-                username: 'kurento',
-                credential: 'kurento'
-            }
-        ]
-    });
-    // var videoConference = new SK_VideoConference({
-    //     serverUrl: "https://192.168.1.104:4443",
-    //     serverSecret: "MY_SECRET",
-    //     iceServers:[]
-    // });
+    const videoConference = new SK_VideoConference();
 
-    var roomId = "007";  // 房间ID
-    var localUsername = "本地用户_" + Math.floor(Math.random() * 100);
-    var leftDom = document.querySelector(".left");
-    var rightDom = document.querySelector(".right");
-    var subscribers = [];
-    var urlParams = getURLParameters(window.location.search);
+    const roomId = "007";  // 房间ID
+    const localUsername = "本地用户_" + Math.floor(Math.random() * 100);
+    const leftDom = document.querySelector(".left");
+    const rightDom = document.querySelector(".right");
+    const subscribers = [];
+    const urlParams = getURLParameters(window.location.search);
 
     // 创建中间视频video
-    var masterVideo = createMasterVideo();
+    const masterVideo = createMasterVideo();
 
     // 检查设备支持情况
     videoConference.checkSupportDevice().then((data) => {
@@ -255,10 +234,10 @@ function start() {
         },
         isCreateVideo: true,
         initPublisherFinished: function(resp){
-            var video  = resp.video;
-            var publisher = resp.publisher;
+            const video  = resp.video;
+            const publisher = resp.publisher;
 
-            var localVideoWrapper = createVideoWrapper(video, localUsername, videoConference, publisher, masterVideo);
+            const localVideoWrapper = createVideoWrapper(video, localUsername, videoConference, publisher, masterVideo);
             leftDom.appendChild(localVideoWrapper);
             createOperator(videoConference, roomId, masterVideo, publisher);
 
@@ -271,13 +250,13 @@ function start() {
         },
         // 监听订阅者加入
         subscriberJoinListener: function (resp) {
-            var subscriber = resp.subscriber;
+            const subscriber = resp.subscriber;
             // 获取会议人员进入会议时的附属信息
             const { username, phone } = resp.metaData;
-            var event = resp.event;
-            var video = resp.video;
+            const event = resp.event;
+            const video = resp.video;
 
-            var videoWrapper = createVideoWrapper(video, username, videoConference, subscriber, masterVideo);
+            const videoWrapper = createVideoWrapper(video, username, videoConference, subscriber, masterVideo);
             rightDom.appendChild(videoWrapper);
             subscribers.push({
                 stream: event.stream,
@@ -286,11 +265,11 @@ function start() {
         },
         // 监听订阅者离开
         subscriberLeaveListener: function (event) {
-            var userStream = subscribers.filter((item) => item.stream === event.stream)[0];
-            var index = subscribers.indexOf(userStream, 0);
+            const userStream = subscribers.filter((item) => item.stream === event.stream)[0];
+            const index = subscribers.indexOf(userStream, 0);
 
             if (index !== -1) {
-                var videoWrapper = subscribers[index].videoWrapper;
+                const videoWrapper = subscribers[index].videoWrapper;
                 rightDom.removeChild(videoWrapper);
                 subscribers.splice(index, 1);
             }
